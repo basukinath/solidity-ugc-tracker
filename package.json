@@ -1,0 +1,33 @@
+{
+  "name": "solidity-ugc-tracker",
+  "version": "1.0.0",
+  "description": "A Solidity application for tracking user-generated content",
+  "main": "index.js",
+  "scripts": {
+    "test": "hardhat test",
+    "compile": "hardhat compile",
+    "deploy": "hardhat run scripts/deploy.js --network localhost",
+    "node": "hardhat node",
+    "client": "cd client && npm start"
+  },
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "blockchain",
+    "smart-contracts",
+    "user-generated-content"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@nomiclabs/hardhat-waffle": "^2.0.6",
+    "chai": "^4.3.7",
+    "ethereum-waffle": "^4.0.10",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.17.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.9.2"
+  }
+} 
