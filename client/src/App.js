@@ -9,6 +9,7 @@ import Home from './components/Home';
 import CreateContent from './components/CreateContent';
 import MyContent from './components/MyContent';
 import ContentDetails from './components/ContentDetails';
+import UserReports from './components/UserReports';
 import Footer from './components/Footer';
 
 // Contract ABI and address
@@ -101,6 +102,7 @@ function App() {
             <Route path="/create" element={<CreateContent contract={contract} account={account} />} />
             <Route path="/my-content" element={<MyContent contract={contract} account={account} />} />
             <Route path="/content/:id" element={<ContentDetails contract={contract} account={account} />} />
+            <Route path="/reports" element={<UserReports contract={contract} account={account} />} />
           </Routes>
         )}
       </main>

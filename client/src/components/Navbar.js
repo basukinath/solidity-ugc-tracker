@@ -24,6 +24,9 @@ const Navbar = ({ account }) => {
             <li>
               <Link to="/my-content">My Content</Link>
             </li>
+            <li>
+              <Link to="/reports">Reports</Link>
+            </li>
           </ul>
           
           <div className="account">

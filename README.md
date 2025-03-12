@@ -10,12 +10,14 @@ A decentralized application for tracking and managing user-generated content on 
 - Like/unlike content
 - View content created by all users
 - Manage your own content
+- Generate PDF reports of user activity
 
 ## Tech Stack
 
 - **Smart Contracts**: Solidity, Hardhat
 - **Frontend**: React, ethers.js
 - **Storage**: IPFS via Web3.Storage
+- **PDF Generation**: jsPDF, jsPDF-autotable
 - **Testing**: Chai, Waffle
 
 ## Project Structure
@@ -31,6 +33,10 @@ solidity-ugc-tracker/
 ├── client/                # Frontend React application
 │   ├── public/            # Static files
 │   └── src/               # React components and logic
+│       ├── components/    # React components
+│       │   ├── UserReports.js # PDF report generation
+│       │   └── ...        # Other components
+│       └── ...            # Other React files
 ├── hardhat.config.js      # Hardhat configuration
 └── package.json           # Project dependencies
 ```
@@ -88,6 +94,17 @@ solidity-ugc-tracker/
 
 5. Open your browser and navigate to `http://localhost:3000`
 
+## User Activity Reports
+
+The application includes a feature to generate PDF reports of user activity:
+
+1. Navigate to the "Reports" page from the navigation bar
+2. View a list of all your actions on the platform
+3. Click "Generate PDF Report" to download a PDF containing:
+   - A table of all your actions
+   - Timestamps for each action
+   - A summary of action types (create, update, remove, like, unlike)
+
 ## Testing
 
 Run the test suite:
@@ -111,4 +128,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - OpenZeppelin for secure contract libraries
 - Web3.Storage for IPFS integration
-- Hardhat for the development environment 
+- Hardhat for the development environment
+- jsPDF for PDF generation 

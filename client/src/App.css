@@ -315,6 +315,86 @@ textarea {
   margin-top: auto;
 }
 
+/* User Reports */
+.user-reports {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.user-reports h2 {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.report-actions {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.actions-table {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-top: 2rem;
+}
+
+.actions-table h3 {
+  padding: 1rem;
+  background: var(--light-color);
+  margin: 0;
+}
+
+.actions-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.actions-table th,
+.actions-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+.actions-table th {
+  background-color: #f9f9f9;
+  font-weight: bold;
+}
+
+.actions-table tr:last-child td {
+  border-bottom: none;
+}
+
+.action-type-create {
+  color: var(--success-color);
+}
+
+.action-type-update {
+  color: var(--primary-color);
+}
+
+.action-type-remove {
+  color: var(--danger-color);
+}
+
+.action-type-like {
+  color: #ff6b6b;
+}
+
+.action-type-unlike {
+  color: #777;
+}
+
+.no-actions {
+  text-align: center;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
 /* Responsive */
 @media (max-width: 700px) {
   .navbar {
@@ -329,5 +409,9 @@ textarea {
 
   .content-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .actions-table {
+    overflow-x: auto;
   }
 } 

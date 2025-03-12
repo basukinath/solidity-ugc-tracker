@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 contract UserContent is Ownable {
     using Counters for Counters.Counter;
     Counters.Counter private _contentIds;
+    Counters.Counter private _actionIds;
 
     // Struct to store content information
     struct Content {
@@ -23,6 +24,15 @@ contract UserContent is Ownable {
         bool isActive;
     }
 
+    // Struct to store user action information
+    struct UserAction {
+        uint256 id;
+        address user;
+        string actionType; // "create", "update", "remove", "like", "unlike"
+        uint256 contentId;
+        uint256 timestamp;
+    }
+
     // Mapping from content ID to Content struct
     mapping(uint256 => Content) public contents;
     
@@ -32,12 +42,19 @@ contract UserContent is Ownable {
     // Mapping to track user likes
     mapping(uint256 => mapping(address => bool)) public contentLikes;
 
+    // Mapping to store user actions
+    mapping(uint256 => UserAction) public userActions;
+    
+    // Mapping from user address to their action IDs
+    mapping(address => uint256[]) public userActionIds;
+
     // Events
     event ContentCreated(uint256 indexed contentId, address indexed creator, string contentURI, string contentType);
     event ContentUpdated(uint256 indexed contentId, string contentURI);
     event ContentRemoved(uint256 indexed contentId);
     event ContentLiked(uint256 indexed contentId, address indexed liker);
     event ContentUnliked(uint256 indexed contentId, address indexed unliker);
+    event UserActionRecorded(uint256 indexed actionId, address indexed user, string actionType, uint256 contentId);
 
     /**
      * @dev Create new content
@@ -60,6 +77,9 @@ contract UserContent is Ownable {
         
         userContents[msg.sender].push(newContentId);
         
+        // Record user action
+        _recordUserAction(msg.sender, "create", newContentId);
+        
         emit ContentCreated(newContentId, msg.sender, _contentURI, _contentType);
     }
 
@@ -74,6 +94,9 @@ contract UserContent is Ownable {
         
         contents[_contentId].contentURI = _newContentURI;
         
+        // Record user action
+        _recordUserAction(msg.sender, "update", _contentId);
+        
         emit ContentUpdated(_contentId, _newContentURI);
     }
 
@@ -86,6 +109,9 @@ contract UserContent is Ownable {
         require(contents[_contentId].isActive, "Content is already inactive");
         
         contents[_contentId].isActive = false;
+        
+        // Record user action
+        _recordUserAction(msg.sender, "remove", _contentId);
         
         emit ContentRemoved(_contentId);
     }
@@ -102,6 +128,9 @@ contract UserContent is Ownable {
         contentLikes[_contentId][msg.sender] = true;
         contents[_contentId].likes += 1;
         
+        // Record user action
+        _recordUserAction(msg.sender, "like", _contentId);
+        
         emit ContentLiked(_contentId, msg.sender);
     }
 
@@ -116,7 +145,33 @@ contract UserContent is Ownable {
         contentLikes[_contentId][msg.sender] = false;
         contents[_contentId].likes -= 1;
         
+        // Record user action
+        _recordUserAction(msg.sender, "unlike", _contentId);
+        
         emit ContentUnliked(_contentId, msg.sender);
+    }
+
+    /**
+     * @dev Internal function to record user actions
+     * @param _user Address of the user performing the action
+     * @param _actionType Type of action performed
+     * @param _contentId ID of the content involved
+     */
+    function _recordUserAction(address _user, string memory _actionType, uint256 _contentId) internal {
+        _actionIds.increment();
+        uint256 newActionId = _actionIds.current();
+        
+        userActions[newActionId] = UserAction({
+            id: newActionId,
+            user: _user,
+            actionType: _actionType,
+            contentId: _contentId,
+            timestamp: block.timestamp
+        });
+        
+        userActionIds[_user].push(newActionId);
+        
+        emit UserActionRecorded(newActionId, _user, _actionType, _contentId);
     }
 
     /**
@@ -143,5 +198,31 @@ contract UserContent is Ownable {
      */
     function getTotalContentCount() public view returns (uint256) {
         return _contentIds.current();
+    }
+
+    /**
+     * @dev Get user action by ID
+     * @param _actionId ID of the action to retrieve
+     * @return UserAction struct
+     */
+    function getUserAction(uint256 _actionId) public view returns (UserAction memory) {
+        return userActions[_actionId];
+    }
+
+    /**
+     * @dev Get all action IDs for a user
+     * @param _user Address of the user
+     * @return Array of action IDs
+     */
+    function getUserActionIds(address _user) public view returns (uint256[] memory) {
+        return userActionIds[_user];
+    }
+
+    /**
+     * @dev Get total number of actions recorded
+     * @return Total action count
+     */
+    function getTotalActionCount() public view returns (uint256) {
+        return _actionIds.current();
     }
 } 
