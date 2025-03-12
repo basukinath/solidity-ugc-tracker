@@ -27,6 +27,12 @@ const Navbar = ({ account }) => {
             <li>
               <Link to="/reports">Reports</Link>
             </li>
+            <li>
+              <Link to="/notifications">Notifications</Link>
+            </li>
+            <li>
+              <Link to="/activity-demo">Activity Demo</Link>
+            </li>
           </ul>
           
           <div className="account">

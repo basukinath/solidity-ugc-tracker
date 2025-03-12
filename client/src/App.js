@@ -10,7 +10,9 @@ import CreateContent from './components/CreateContent';
 import MyContent from './components/MyContent';
 import ContentDetails from './components/ContentDetails';
 import UserReports from './components/UserReports';
+import NotificationPreferences from './components/NotificationPreferences';
 import Footer from './components/Footer';
+import ActivityDemo from './components/ActivityDemo';
 
 // Contract ABI and address
 import UserContentArtifact from './artifacts/contracts/UserContent.sol/UserContent.json';
@@ -103,6 +105,8 @@ function App() {
             <Route path="/my-content" element={<MyContent contract={contract} account={account} />} />
             <Route path="/content/:id" element={<ContentDetails contract={contract} account={account} />} />
             <Route path="/reports" element={<UserReports contract={contract} account={account} />} />
+            <Route path="/notifications" element={<NotificationPreferences account={account} />} />
+            <Route path="/activity-demo" element={<ActivityDemo account={account} />} />
           </Routes>
         )}
       </main>
