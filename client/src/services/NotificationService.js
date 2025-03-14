@@ -5,6 +5,8 @@
  * In a real application, this would connect to backend services for email, SMS, and WhatsApp.
  */
 
+import RateLimiter from '../utils/RateLimiter';
+
 // Activity types
 export const ActivityTypes = {
   LOGIN: 0,
@@ -25,6 +27,32 @@ export const NotificationChannels = {
   WHATSAPP: 3,
   ALL: 4
 };
+
+// Create rate limiters for different notification channels
+const emailRateLimiter = new RateLimiter({
+  maxRequests: 10,  // 10 emails per hour
+  windowMs: 60 * 60 * 1000,  // 1 hour
+  message: 'Email notification rate limit exceeded. Try again later.'
+});
+
+const smsRateLimiter = new RateLimiter({
+  maxRequests: 5,   // 5 SMS per hour
+  windowMs: 60 * 60 * 1000,  // 1 hour
+  message: 'SMS notification rate limit exceeded. Try again later.'
+});
+
+const whatsappRateLimiter = new RateLimiter({
+  maxRequests: 5,   // 5 WhatsApp messages per hour
+  windowMs: 60 * 60 * 1000,  // 1 hour
+  message: 'WhatsApp notification rate limit exceeded. Try again later.'
+});
+
+// Create a rate limiter for overall activity tracking
+const activityRateLimiter = new RateLimiter({
+  maxRequests: 50,  // 50 activities per hour
+  windowMs: 60 * 60 * 1000,  // 1 hour
+  message: 'Activity tracking rate limit exceeded. Try again later.'
+});
 
 // Mock function to simulate sending email
 const sendEmail = async (to, subject, message) => {
@@ -115,11 +143,29 @@ const sendNotification = async (user, activityType, preferredChannel, message) =
       return { success: true, message: 'Notifications disabled for this activity type' };
     }
     
+    const results = {
+      email: null,
+      sms: null,
+      whatsapp: null
+    };
+    
     if (preferredChannel === NotificationChannels.EMAIL || preferredChannel === NotificationChannels.ALL) {
       if (!user.email) {
         console.warn('Email notification requested but no email provided');
       } else {
-        await sendEmail(user.email, subject, message);
+        // Check rate limit for email
+        const emailRateCheck = emailRateLimiter.check(user.address);
+        if (emailRateCheck.allowed) {
+          await sendEmail(user.email, subject, message);
+          results.email = { success: true };
+        } else {
+          console.warn(`Email rate limit exceeded for user ${user.address}`);
+          results.email = { 
+            success: false, 
+            error: emailRateCheck.message,
+            resetTime: emailRateCheck.resetTime
+          };
+        }
       }
     }
     
@@ -127,7 +173,19 @@ const sendNotification = async (user, activityType, preferredChannel, message) =
       if (!user.phone) {
         console.warn('SMS notification requested but no phone number provided');
       } else {
-        await sendSMS(user.phone, message);
+        // Check rate limit for SMS
+        const smsRateCheck = smsRateLimiter.check(user.address);
+        if (smsRateCheck.allowed) {
+          await sendSMS(user.phone, message);
+          results.sms = { success: true };
+        } else {
+          console.warn(`SMS rate limit exceeded for user ${user.address}`);
+          results.sms = { 
+            success: false, 
+            error: smsRateCheck.message,
+            resetTime: smsRateCheck.resetTime
+          };
+        }
       }
     }
     
@@ -135,11 +193,34 @@ const sendNotification = async (user, activityType, preferredChannel, message) =
       if (!user.phone) {
         console.warn('WhatsApp notification requested but no phone number provided');
       } else {
-        await sendWhatsApp(user.phone, message);
+        // Check rate limit for WhatsApp
+        const whatsappRateCheck = whatsappRateLimiter.check(user.address);
+        if (whatsappRateCheck.allowed) {
+          await sendWhatsApp(user.phone, message);
+          results.whatsapp = { success: true };
+        } else {
+          console.warn(`WhatsApp rate limit exceeded for user ${user.address}`);
+          results.whatsapp = { 
+            success: false, 
+            error: whatsappRateCheck.message,
+            resetTime: whatsappRateCheck.resetTime
+          };
+        }
       }
     }
     
-    return { success: true };
+    // Determine overall success
+    const anySuccess = results.email?.success || results.sms?.success || results.whatsapp?.success;
+    const allFailed = 
+      (results.email && !results.email.success) && 
+      (results.sms && !results.sms.success) && 
+      (results.whatsapp && !results.whatsapp.success);
+    
+    return { 
+      success: anySuccess, 
+      results,
+      rateLimited: allFailed
+    };
   } catch (error) {
     console.error('Error sending notification:', error);
     return { success: false, error: error.message };
@@ -156,6 +237,18 @@ const sendNotification = async (user, activityType, preferredChannel, message) =
  */
 const trackActivity = async (user, activityType, preferredChannel, data = {}) => {
   try {
+    // Check rate limit for activity tracking
+    const activityRateCheck = activityRateLimiter.check(user.address);
+    if (!activityRateCheck.allowed) {
+      console.warn(`Activity tracking rate limit exceeded for user ${user.address}`);
+      return { 
+        success: false, 
+        error: activityRateCheck.message,
+        rateLimited: true,
+        resetTime: activityRateCheck.resetTime
+      };
+    }
+    
     // Construct message based on activity type
     let message = '';
     
@@ -198,6 +291,8 @@ const trackActivity = async (user, activityType, preferredChannel, data = {}) =>
       success: true,
       activityLogged: true,
       notificationSent: notificationResult.success,
+      notificationResults: notificationResult.results,
+      rateLimited: notificationResult.rateLimited,
       message: message
     };
   } catch (error) {
@@ -206,10 +301,37 @@ const trackActivity = async (user, activityType, preferredChannel, data = {}) =>
   }
 };
 
+/**
+ * Get rate limit status for a user
+ * @param {string} userAddress - User's blockchain address
+ * @returns {Object} - Rate limit status for different channels
+ */
+const getRateLimitStatus = (userAddress) => {
+  return {
+    activity: activityRateLimiter.getStatus(userAddress),
+    email: emailRateLimiter.getStatus(userAddress),
+    sms: smsRateLimiter.getStatus(userAddress),
+    whatsapp: whatsappRateLimiter.getStatus(userAddress)
+  };
+};
+
+/**
+ * Reset rate limits for a user
+ * @param {string} userAddress - User's blockchain address
+ */
+const resetRateLimits = (userAddress) => {
+  activityRateLimiter.remove(userAddress);
+  emailRateLimiter.remove(userAddress);
+  smsRateLimiter.remove(userAddress);
+  whatsappRateLimiter.remove(userAddress);
+};
+
 // Export the service
 export default {
   ActivityTypes,
   NotificationChannels,
   sendNotification,
-  trackActivity
+  trackActivity,
+  getRateLimitStatus,
+  resetRateLimits
 }; 

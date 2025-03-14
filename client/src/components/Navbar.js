@@ -33,6 +33,9 @@ const Navbar = ({ account }) => {
             <li>
               <Link to="/activity-demo">Activity Demo</Link>
             </li>
+            <li>
+              <Link to="/rate-limit-demo">Rate Limit Demo</Link>
+            </li>
           </ul>
           
           <div className="account">

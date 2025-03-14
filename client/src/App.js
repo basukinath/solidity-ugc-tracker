@@ -13,6 +13,7 @@ import UserReports from './components/UserReports';
 import NotificationPreferences from './components/NotificationPreferences';
 import Footer from './components/Footer';
 import ActivityDemo from './components/ActivityDemo';
+import RateLimitDemo from './components/RateLimitDemo';
 
 // Contract ABI and address
 import UserContentArtifact from './artifacts/contracts/UserContent.sol/UserContent.json';
@@ -107,6 +108,7 @@ function App() {
             <Route path="/reports" element={<UserReports contract={contract} account={account} />} />
             <Route path="/notifications" element={<NotificationPreferences account={account} />} />
             <Route path="/activity-demo" element={<ActivityDemo account={account} />} />
+            <Route path="/rate-limit-demo" element={<RateLimitDemo account={account} />} />
           </Routes>
         )}
       </main>
